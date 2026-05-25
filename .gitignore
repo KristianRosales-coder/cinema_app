@@ -1,0 +1,24 @@
+# Flutter generated files
+.dart_tool/
+build/
+pubspec.lock
+
+# IDE settings
+.idea/
+.vscode/
+
+# Android generated files
+android/.gradle/
+android/local.properties
+android/app/build/
+
+# iOS generated files
+ios/Pods/
+ios/.symlinks/
+
+# Windows generated files
+windows/flutter/
+windows/runner/Debug/
+
+# MacOS generated files
+macos/Flutter/ephemeral/
