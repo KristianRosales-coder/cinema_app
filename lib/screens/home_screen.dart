@@ -1,33 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
+import '../providers/movie_provider.dart';
+import '../models/movie.dart';
+import '../services/tmdb_service.dart';
 import 'movie_detail_screen.dart';
 import 'ticket_screen.dart';
 import 'profile_screen.dart';
 import 'qr_scanner_screen.dart';
-
-class MovieItem {
-  final int id;
-  final String title;
-  final String genre;
-  final String duration;
-  final double rating;
-  final String imageAsset;
-  final String description;
-  final bool isComingSoon;
-  final String trailerUrl;
-
-  MovieItem({
-    required this.id,
-    required this.title,
-    required this.genre,
-    required this.duration,
-    required this.rating,
-    required this.imageAsset,
-    required this.description,
-    this.isComingSoon = false,
-    required this.trailerUrl,
-  });
-}
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _updateDate();
+    // Fetch movies from API when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MovieProvider>(context, listen: false).fetchAllMovies();
+    });
   }
 
   void _updateDate() {
@@ -69,118 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return months[month - 1];
   }
-
-  final List<MovieItem> nowShowingMovies = [
-    MovieItem(
-      id: 1,
-      title: 'FOCKER IN-LAW',
-      genre: 'Comedy',
-      duration: '2h 30m',
-      rating: 4.8,
-      imageAsset: 'assets/images/cinema1.jpg',
-      description:
-          'The circle of trust just got bigger. Greg Focker meets his new in-laws in this hilarious new chapter.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=vyISuWUWcFs',
-    ),
-    MovieItem(
-      id: 2,
-      title: 'SCARY MOVIE',
-      genre: 'Comedy',
-      duration: '1h 50m',
-      rating: 4.7,
-      imageAsset: 'assets/images/cinema2.jpg',
-      description: 'A hilarious parody that spoofs the biggest horror films.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=0fZ58S-7QP0',
-    ),
-    MovieItem(
-      id: 3,
-      title: 'MORTAL KOMBAT II',
-      genre: 'Action',
-      duration: '2h 15m',
-      rating: 4.6,
-      imageAsset: 'assets/images/cinema3.jpg',
-      description:
-          'The epic fighting tournament continues with more intense battles.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=ZdC5mFHPldg',
-    ),
-    MovieItem(
-      id: 4,
-      title: 'SPEED DEMON',
-      genre: 'Action',
-      duration: '1h 45m',
-      rating: 4.9,
-      imageAsset: 'assets/images/cinema4.jpg',
-      description: 'High-speed racing action that pushes the limits.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=DHWrb3uVi1g',
-    ),
-    MovieItem(
-      id: 5,
-      title: 'THE MANDALORIAN AND GROGU',
-      genre: 'Sci-Fi',
-      duration: '1h 55m',
-      rating: 4.5,
-      imageAsset: 'assets/images/cinema5.jpg',
-      description:
-          'The Mandalorian and Grogu continue their journey across the galaxy.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=uwild1rw7Aw',
-    ),
-    MovieItem(
-      id: 6,
-      title: 'THE SUPER MARIO GALAXY',
-      genre: 'Animation',
-      duration: '1h 50m',
-      rating: 4.4,
-      imageAsset: 'assets/images/cinema6.jpeg',
-      description:
-          'Mario ventures into space, exploring cosmic worlds and tackling galactic challenges.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=En5QZmL5R1s',
-    ),
-    MovieItem(
-      id: 7,
-      title: 'MICHAEL',
-      genre: 'Music',
-      duration: '1h 50m',
-      rating: 4.4,
-      imageAsset: 'assets/images/cinema7.jpg',
-      description:
-          'The story of the famous musician Michael Jackson, known as the King of Pop.',
-      isComingSoon: false,
-      trailerUrl: 'https://www.youtube.com/watch?v=3zOLzsbOleM',
-    ),
-  ];
-
-  final List<MovieItem> comingSoonMovies = [
-    MovieItem(
-      id: 8,
-      title: 'LOVE, NGO',
-      genre: 'Romance',
-      duration: '1h 50m',
-      rating: 0.0,
-      imageAsset: 'assets/images/cinema8.jpg',
-      description:
-          'When Ngongo meets Scarlet, he dares to dream of a life beyond his insecurities.',
-      isComingSoon: true,
-      trailerUrl: 'https://www.youtube.com/watch?v=No-QYC87Q0c',
-    ),
-    MovieItem(
-      id: 9,
-      title: 'TOY STORY 5',
-      genre: 'Animation',
-      duration: '1h 50m',
-      rating: 0.0,
-      imageAsset: 'assets/images/cinema9.jpg',
-      description:
-          'Times may change but friends are forever. The toys face new challenges with modern technology.',
-      isComingSoon: true,
-      trailerUrl: 'https://www.youtube.com/watch?v=c51ND9Hdbw0',
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -212,9 +85,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildMovieGrid(String title, List<MovieItem> movies,
-      {bool showRating = true}) {
-    if (movies.isEmpty) return const SizedBox.shrink();
+  Widget _buildMovieGrid(String title, List<Movie> movies) {
+    if (movies.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        child: Text(
+          'No $title movies available',
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,10 +152,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          movie.imageAsset,
+                        child: Image.network(
+                          TMDbService.getImageUrl(movie.posterPath),
                           fit: BoxFit.cover,
                           width: double.infinity,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey[800],
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryRed,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               color: Colors.grey[800],
@@ -302,54 +195,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  if (showRating && movie.rating > 0)
-                    Row(
-                      children: [
-                        const Icon(Icons.star, size: 12, color: Colors.amber),
-                        const SizedBox(width: 4),
-                        Text(
-                          movie.rating.toString(),
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (movie.isComingSoon)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'COMING SOON',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 12, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        movie.voteAverage.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
                       ),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryRed,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'CLICK POSTER TO BUY TICKETS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    ],
+                  ),
                 ],
               ),
             );
@@ -373,6 +231,15 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const QRScannerScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
             },
           ),
@@ -465,7 +332,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const Divider(color: AppColors.textGrey),
+            ListTile(
+              leading: const Icon(Icons.settings, color: AppColors.primaryRed),
+              title:
+                  const Text('Settings', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.primaryRed),
               title:
@@ -479,14 +357,73 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildMovieGrid('NOW SHOWING', nowShowingMovies, showRating: true),
-            _buildMovieGrid('COMING SOON', comingSoonMovies, showRating: false),
-            const SizedBox(height: 30),
-          ],
-        ),
+      body: Consumer<MovieProvider>(
+        builder: (context, movieProvider, child) {
+          if (movieProvider.isLoading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.primaryRed),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading movies...',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (movieProvider.error.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Error loading movies',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      movieProvider.error,
+                      textAlign: TextAlign.center,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      movieProvider.fetchAllMovies();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildMovieGrid('NOW SHOWING', movieProvider.nowPlayingMovies),
+                _buildMovieGrid('COMING SOON', movieProvider.upcomingMovies),
+                const SizedBox(height: 30),
+              ],
+            ),
+          );
+        },
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

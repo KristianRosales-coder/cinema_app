@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/ticket_provider.dart';
 import '../models/ticket.dart';
+import '../models/movie.dart';
+import '../services/tmdb_service.dart';
 import '../utils/constants.dart';
 
 class BookingScreen extends StatefulWidget {
-  final dynamic movie;
+  final Movie movie;
 
   const BookingScreen({super.key, required this.movie});
 
@@ -325,11 +327,25 @@ class _BookingScreenState extends State<BookingScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            widget.movie.imageAsset,
+                          child: Image.network(
+                            TMDbService.getImageUrl(widget.movie.posterPath),
                             width: 60,
                             height: 80,
                             fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 60,
+                                height: 80,
+                                color: Colors.grey[800],
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.primaryRed),
+                                  ),
+                                ),
+                              );
+                            },
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 width: 60,
@@ -356,13 +372,13 @@ class _BookingScreenState extends State<BookingScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                widget.movie.genre,
+                                'Release: ${widget.movie.releaseDate}',
                                 style: const TextStyle(
                                     color: AppColors.textGrey, fontSize: 12),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                widget.movie.duration,
+                                'Rating: ${widget.movie.voteAverage.toStringAsFixed(1)}',
                                 style: const TextStyle(
                                     color: AppColors.textGrey, fontSize: 12),
                               ),

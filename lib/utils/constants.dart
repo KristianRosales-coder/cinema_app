@@ -21,3 +21,16 @@ class AppStrings {
   static const String settings = 'Settings';
   static const String logout = 'Logout';
 }
+
+class ApiConstants {
+  static const String tmdbBaseUrl = 'https://api.themoviedb.org/3';
+  static const String tmdbApiKey = 'd99c288697272230f56258dff79ee368';
+  static const String tmdbImageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+  static const int requestTimeout = 10; // seconds
+}
+
+class AppDefaults {
+  static const double defaultPadding = 16.0;
+  static const double defaultBorderRadius = 12.0;
+  static const int moviesPerPage = 10;
+}

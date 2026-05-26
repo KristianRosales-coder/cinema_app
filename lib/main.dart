@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ticket_provider.dart';
+import 'providers/movie_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -18,6 +19,7 @@ class CinemaTicketingApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => TicketProvider()),
+        ChangeNotifierProvider(create: (_) => MovieProvider()),
       ],
       child: MaterialApp(
         title: 'Cinema Ticketing',

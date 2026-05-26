@@ -1,28 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
+import '../services/tmdb_service.dart';
+import '../models/movie.dart';
 import 'booking_screen.dart';
 
 class MovieDetailScreen extends StatelessWidget {
-  final dynamic movie;
+  final Movie movie;
 
   const MovieDetailScreen({super.key, required this.movie});
-
-  Future<void> _openInBrowser(BuildContext context) async {
-    // Use the full YouTube URL
-    final Uri url = Uri.parse(movie.trailerUrl);
-
-    // Try to open in browser (more reliable than YouTube app)
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.platformDefault);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Could not open video. Please check your internet connection.')),
-      );
-    }
-  }
 
   String _getMtrcbRating(String title) {
     if (title.contains('FOCKER') || title.contains('SCARY')) {
@@ -85,55 +70,42 @@ class MovieDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Movie Poster as Button - Click to watch on YouTube
+            // Movie Poster
             GestureDetector(
-              onTap: () => _openInBrowser(context),
-              child: Stack(
-                children: [
-                  Image.asset(
-                    movie.imageAsset,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[900],
-                        child: const Center(
-                          child: Icon(Icons.movie,
-                              size: 80, color: AppColors.primaryRed),
+              onTap: () {
+                // Can be used for additional actions
+              },
+              child: Container(
+                width: double.infinity,
+                height: 250,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                ),
+                child: Image.network(
+                  TMDbService.getImageUrl(movie.posterPath),
+                  width: double.infinity,
+                  height: 250,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryRed,
                         ),
-                      );
-                    },
-                  ),
-                  Container(
-                    width: double.infinity,
-                    height: 250,
-                    color: Colors.black45,
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.play_circle_filled,
-                            size: 64,
-                            color: Colors.white,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Watch Trailer on YouTube',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Icon(Icons.movie,
+                            size: 80, color: AppColors.primaryRed),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             // Movie Details
@@ -153,6 +125,13 @@ class MovieDetailScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
+                      const Icon(Icons.star, size: 20, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        movie.voteAverage.toStringAsFixed(1),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
@@ -161,24 +140,9 @@ class MovieDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          movie.genre,
-                          style: const TextStyle(color: Colors.white),
+                          movie.releaseDate.substring(0, 4),
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Icon(Icons.star, size: 20, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        movie.rating.toString(),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(width: 10),
-                      const Icon(Icons.access_time,
-                          size: 20, color: AppColors.textGrey),
-                      const SizedBox(width: 4),
-                      Text(
-                        movie.duration,
-                        style: const TextStyle(color: AppColors.textGrey),
                       ),
                     ],
                   ),
@@ -282,6 +246,55 @@ class MovieDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Synopsis',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    movie.overview,
+                    style:
+                        const TextStyle(color: AppColors.textGrey, height: 1.5),
+                  ),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BookingScreen(movie: movie),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryRed,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text(
+                        'BOOK NOW',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
                     ),
                   ),
                   const SizedBox(height: 20),
