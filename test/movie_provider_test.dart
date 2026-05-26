@@ -30,7 +30,7 @@ void main() {
       final provider = MovieProvider();
 
       // Manually set an error for testing
-      provider._error = 'Test error';
+      provider.setError('Test error');
       provider.clearError();
 
       expect(provider.error, '');

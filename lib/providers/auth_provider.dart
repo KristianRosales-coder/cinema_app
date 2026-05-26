@@ -1,63 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/firebase_auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider extends ChangeNotifier {
-  bool _isLoggedIn = false;
-  String _userEmail = '';
-
-  bool get isLoggedIn => _isLoggedIn;
-  String get userEmail => _userEmail;
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  User? _user;
 
   AuthProvider() {
-    _loadAuthState();
+    // Listen to real-time auth changes
+    _authService.authStateChanges.listen((User? user) {
+      _user = user;
+      notifyListeners();
+    });
   }
 
-  Future<void> _loadAuthState() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    _userEmail = prefs.getString('userEmail') ?? '';
-    notifyListeners();
-  }
+  bool get isLoggedIn => _user != null;
+  String get userEmail => _user?.email ?? '';
+  String get userId => _user?.uid ?? '';
 
   Future<bool> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (email.isNotEmpty && password.isNotEmpty) {
-      final prefs = await SharedPreferences.getInstance();
-      _isLoggedIn = true;
-      _userEmail = email;
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userEmail', email);
-      notifyListeners();
-      return true;
+    try {
+      final user = await _authService.signInWithEmail(email, password);
+      return user != null;
+    } catch (e) {
+      debugPrint('Login error: $e');
+      return false;
     }
-    return false;
   }
 
-  Future<bool> register(
-      String email, String password, String confirmPassword) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (email.isNotEmpty &&
-        password.isNotEmpty &&
-        password == confirmPassword) {
-      final prefs = await SharedPreferences.getInstance();
-      _isLoggedIn = true;
-      _userEmail = email;
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userEmail', email);
-      notifyListeners();
-      return true;
+  Future<bool> register(String email, String password, String confirmPassword) async {
+    if (password != confirmPassword) return false;
+    try {
+      final user = await _authService.signUpWithEmail(email, password);
+      return user != null;
+    } catch (e) {
+      debugPrint('Registration error: $e');
+      return false;
     }
-    return false;
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isLoggedIn = false;
-    _userEmail = '';
-    await prefs.setBool('isLoggedIn', false);
-    await prefs.remove('userEmail');
-    notifyListeners();
+    await _authService.signOut();
   }
 }

@@ -6,7 +6,7 @@ void main() {
     test('Ticket can be converted to map and back', () {
       final now = DateTime.now();
       final ticket = Ticket(
-        id: 1,
+        id: 'ticket_001',
         movieTitle: 'Fight Club',
         cinemaHall: 'Hall A',
         seatNumber: 'A5',

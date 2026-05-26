@@ -2,10 +2,11 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.cinema_ticketing"
+    namespace = "com.cinema_app.cinema_ticketing"
     compileSdk = 36
     
     compileOptions {
@@ -18,7 +19,7 @@ android {
     }
     
     defaultConfig {
-        applicationId = "com.example.cinema_ticketing"
+        applicationId = "com.cinema_app.cinema_ticketing"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = 1

@@ -40,6 +40,10 @@ dependencies:
 
   # URL Launcher for YouTube
   url_launcher: ^6.2.1
+  firebase_core: ^4.9.0
+  firebase_auth: ^6.5.1
+  cloud_firestore: ^6.4.1
+  google_sign_in: ^7.2.0
 
 
 dev_dependencies:

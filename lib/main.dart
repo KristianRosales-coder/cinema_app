@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ticket_provider.dart';
 import 'providers/movie_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    // This is the core connection to your Firebase project
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10)); // Prevent the 10-second hang
+  } catch (e) {
+    debugPrint("Firebase connection failed: $e");
+    // We continue so the app can start even if the API Key is still wrong
+  }
+
   runApp(const CinemaTicketingApp());
 }
 
@@ -29,8 +43,7 @@ class CinemaTicketingApp extends StatelessWidget {
           colorScheme: const ColorScheme.dark(
             primary: AppColors.primaryRed,
             secondary: AppColors.accentRed,
-            surface: AppColors
-                .backgroundBlack, // FIXED: changed 'background' to 'surface'
+            surface: AppColors.backgroundBlack,
           ),
           scaffoldBackgroundColor: AppColors.backgroundBlack,
           appBarTheme: const AppBarTheme(

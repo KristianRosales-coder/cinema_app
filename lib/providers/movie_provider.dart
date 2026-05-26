@@ -72,6 +72,12 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
+  // Set error (for testing)
+  void setError(String errorMessage) {
+    _error = errorMessage;
+    notifyListeners();
+  }
+
   // Clear error
   void clearError() {
     _error = '';

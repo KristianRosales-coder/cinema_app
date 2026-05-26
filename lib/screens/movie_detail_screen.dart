@@ -54,6 +54,11 @@ class MovieDetailScreen extends StatelessWidget {
     return cast[title] ?? 'To be announced';
   }
 
+  String _releaseYear(String releaseDate) {
+    if (releaseDate.isEmpty) return 'TBA';
+    return releaseDate.length >= 4 ? releaseDate.substring(0, 4) : releaseDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     final mtrcbRating = _getMtrcbRating(movie.title);
@@ -70,45 +75,35 @@ class MovieDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Movie Poster
-            GestureDetector(
-              onTap: () {
-                // Can be used for additional actions
-              },
-              child: Container(
+            Container(
+              width: double.infinity,
+              height: 250,
+              color: Colors.grey[850],
+              child: Image.network(
+                TMDbService.getImageUrl(movie.posterPath),
                 width: double.infinity,
                 height: 250,
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                ),
-                child: Image.network(
-                  TMDbService.getImageUrl(movie.posterPath),
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryRed,
-                        ),
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primaryRed,
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[800],
-                      child: const Center(
-                        child: Icon(Icons.movie,
-                            size: 80, color: AppColors.primaryRed),
-                      ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[850],
+                    child: const Center(
+                      child: Icon(Icons.movie, size: 80, color: AppColors.primaryRed),
+                    ),
+                  );
+                },
               ),
             ),
-            // Movie Details
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -133,14 +128,13 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primaryRed,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          movie.releaseDate.substring(0, 4),
+                          _releaseYear(movie.releaseDate),
                           style: const TextStyle(color: Colors.white, fontSize: 12),
                         ),
                       ),
@@ -148,8 +142,7 @@ class MovieDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.amber[700],
                       borderRadius: BorderRadius.circular(8),
@@ -157,8 +150,7 @@ class MovieDetailScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.verified,
-                            size: 16, color: Colors.white),
+                        const Icon(Icons.verified, size: 16, color: Colors.white),
                         const SizedBox(width: 8),
                         Text(
                           'MTRCB Rating: $mtrcbRating',
@@ -180,8 +172,7 @@ class MovieDetailScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.person_outline,
-                            color: AppColors.primaryRed, size: 24),
+                        const Icon(Icons.person_outline, color: AppColors.primaryRed, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -219,8 +210,7 @@ class MovieDetailScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.people_outline,
-                            color: AppColors.primaryRed, size: 24),
+                        const Icon(Icons.people_outline, color: AppColors.primaryRed, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -260,8 +250,7 @@ class MovieDetailScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     movie.overview,
-                    style:
-                        const TextStyle(color: AppColors.textGrey, height: 1.5),
+                    style: const TextStyle(color: AppColors.textGrey, height: 1.5),
                   ),
                   const SizedBox(height: 30),
                   SizedBox(
@@ -281,57 +270,7 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                       child: const Text(
                         'BOOK NOW',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Synopsis',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    movie.description,
-                    style:
-                        const TextStyle(color: AppColors.textGrey, height: 1.5),
-                  ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BookingScreen(movie: movie),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryRed,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        'BOOK NOW',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
